@@ -1,0 +1,44 @@
+name: "🚀 Azure Platform Golden Path CI/CD"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./infrastructure
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 🔐 Azure Login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # ⚙️ Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      # 🚀 Terraform Init
+      - name: Terraform Init
+        run: terraform init
+
+      # 📋 Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan
+
+      # 🚀 Terraform Apply (ONLY on main push)
+      - name: Terraform Apply
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve
